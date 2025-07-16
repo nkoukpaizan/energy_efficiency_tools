@@ -1,30 +1,33 @@
 #!/bin/bash
-#SBATCH -J freq_sweep
-#SBATCH -A ven114          # EDIT: Use your project account 
+#SBATCH -J hpgmxp_freq_sweep
+#SBATCH -A stf006          # EDIT: Use your project account 
 #SBATCH --time=2:00:00     # EDIT: Time limit for the job
 #SBATCH --nodes=1          # EDIT: Number of nodes for the job
-#SBATCH -q debug           # EDIT: Comment if you don't want to submit to the debug queue 
+# #SBATCH -q debug           # EDIT: Comment if you don't want to submit to the debug queue 
 #SBATCH -e job_error.log
 #SBATCH -o job_output.log
 
 #### Global parameters
-EE_TOOLS_PATH=${HOME}/util/energy_efficiency_tools  # EDIT: location of the energy_efficiency_tools directory 
+EE_TOOLS_PATH=/lustre/orion/scratch/nkouk/stf006/Codes/energy_efficiency_tools  # EDIT: location of the energy_efficiency_tools directory 
+APP_PATH=/lustre/orion/scratch/nkouk/stf006/Codes/HPG-MxP                       # EDIT: application path
 FREQUENCY_CAP_VALS=(1700 1600 1500 1400 1300 1200 1100 1000 900 800 700 600 500) 
 
-
 #### Job parameters
-WORK_DIR=$PWD                          # EDIT: Work directory for the frequency sweep 
+WORK_DIR=${EE_TOOLS_PATH}/HPG-MxP      # EDIT: Work directory for the frequency sweep 
 N_MPI_PER_NODE=8                       # EDIT: Number of MPI ranks per node 
-EXEC="${HOME}/code/cholla/bin/cholla.hydro.frontier parameter_file.txt" # EDIT: Application executable and parameters
-AFFINITY="-c 7 --ntasks-per-node=${N_MPI_PER_NODE} --gpus-per-task=1 --gpu-bind=closest"     # EDIT: Affinity config to run your application
+HPCG_NX=320
+HPCG_NY=320
+HPCG_NZ=320
+RUNTIME=60 #1800
+EXEC="${APP_PATH}/_install/bin/xhpgmp --nx=$HPCG_NX --ny=$HPCG_NY --nz=$HPCG_NZ --rt=$RUNTIME" # EDIT: Application executable and parameters
+AFFINITY="-c 7 --ntasks-per-node=${N_MPI_PER_NODE} --gpus-per-task=1 --gpu-bind=closest --exclusive"     # EDIT: Affinity config to run your application
 N_NODES=${SLURM_JOB_NUM_NODES}
 N_MPI=$((N_NODES*N_MPI_PER_NODE))
 #NOTE: The srun command looks like follows: srun -n $N_MPI $AFFINITY $EXEC
 
-
 #### Setup application environment  
 # EDIT: Environment setup for your application
-SYSTEM=frontier source ${HOME}/code/cholla/scripts/set_env.sh
+. /lustre/orion/scratch/nkouk/stf006/Codes/HPG-MxP/env.sh
 
 # NOTHING ELSE TO EDIT BELOW
 ################################################################################
