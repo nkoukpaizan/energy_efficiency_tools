@@ -43,14 +43,11 @@ for indx,input_dir in enumerate(input_dirs):
 
     # Generate the time, energy, and EDP vs frequency cap plots
     figure_name = f'{input_dir}/time_energy_vs_frequency_cap.png'
-    # title = '   Cholla hydrodynamics - Single Frontier node run'
     title = None
     tools.plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_name, title=title )
 
     frequency_sweep_data_all[indx] = {'job_data': job_data, 'frequency_sweep_data':frequency_sweep_data }
 
-
 figure_name = f'frequency_sweep_combined.png'
-# title = '   Cholla hydrodynamics - Weak scaling on Frontier'
 title = None
 tools.plot_frequency_cap_energy_analysis(frequency_sweep_data_all, edp_alpha, edp_beta, figure_name, multiple_data=True, title=title )
