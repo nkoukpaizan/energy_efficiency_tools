@@ -10,7 +10,7 @@ import tools.analysis_tools as tools
 
 importlib.reload(tools)
 
-def energy_analysis(input_dirs, edp_alpha, edp_beta, local_plot=True):
+def energy_analysis(input_dirs, edp_alpha, edp_beta, local_plot=True, global_plot=True):
     print( f'Input directory: {input_dirs}')
     print( f'EDP alpha: {edp_alpha}')
     print( f'EDP beta: {edp_beta}')
@@ -31,7 +31,10 @@ def energy_analysis(input_dirs, edp_alpha, edp_beta, local_plot=True):
             tools.plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_name, title=title )
     
         frequency_sweep_data_all[indx] = {'job_data': job_data, 'frequency_sweep_data':frequency_sweep_data }
-    
-    figure_name = f'frequency_sweep_combined.png'
-    title = None
-    tools.plot_frequency_cap_energy_analysis(frequency_sweep_data_all, edp_alpha, edp_beta, figure_name, multiple_data=True, title=title )
+
+    if global_plot:
+        figure_name = f'frequency_sweep_combined.png'
+        title = None
+        tools.plot_frequency_cap_energy_analysis(frequency_sweep_data_all, edp_alpha, edp_beta, figure_name, multiple_data=True, title=title )
+
+    return frequency_sweep_data_all

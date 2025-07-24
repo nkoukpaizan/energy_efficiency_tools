@@ -1,5 +1,36 @@
 import sys, os
 import numpy as np
+import csv
+
+def save_to_csv(data, output_file):
+    # Check if the file exists to determine if we need to write a header
+    file_exists = os.path.isfile(output_file)
+
+    with open(output_file, 'a', newline='') as csvfile:
+        fieldnames = data.keys()
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        # Write the header only if the file does not exist
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow(data)
+
+def save_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, output_file, multiple_data=False, title=None ):
+
+    print( f'Saving CSV: {output_file}' )
+    
+    data_all = job_data
+    if not multiple_data: data_all = {0:{'job_data':data_all}} 
+
+    for indx in data_all:
+        n_nodes = data_all[indx]['job_data']['n_nodes']
+        data = data_all[indx]['job_data']['frequency_sweep']
+
+        for indx in data:
+            data_freq = {'n_nodes': n_nodes}
+            data_freq.update(data[indx])
+            save_to_csv(data_freq, output_file)
 
 def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_name, multiple_data=False, title=None ):
 
@@ -22,7 +53,6 @@ def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_na
 
   line_width = 1.2
   border_width = 1.4
-
 
   for indx in data_all:
 
@@ -54,7 +84,6 @@ def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_na
     ax = ax_l[2]
     ax.scatter(sclk_vals, edp_vals)
     ax.plot(sclk_vals, edp_vals, ls='--', lw=line_width )
-    
   
   ax = ax_l[0]
   ax.legend(frameon=False, fontsize=fs_legend)
@@ -78,8 +107,6 @@ def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_na
   [sp.set_linewidth(border_width) for sp in ax.spines.values()]
 
   ax.set_xlabel( 'GPU Frequency cap [MHz]', fontsize=fs_labels, labelpad=5 )
-
-
 
   fig.align_labels()
   fig.savefig( f'{figure_name}', bbox_inches='tight', dpi=300, facecolor=fig.get_facecolor() )
