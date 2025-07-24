@@ -1,8 +1,5 @@
-
 import sys, os
 import numpy as np
-
-
 
 def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_name, multiple_data=False, title=None ):
 
