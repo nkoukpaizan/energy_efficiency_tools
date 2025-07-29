@@ -18,7 +18,6 @@ def energy_analysis(input_dirs, edp_alpha, edp_beta, local_plot=True, global_plo
     frequency_sweep_data_all = {}
     
     for indx,input_dir in enumerate(input_dirs):
-    
       job_data = tools.load_job_output_file( input_dir ) 
       
       if 'frequency_sweep' in job_data:

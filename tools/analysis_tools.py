@@ -16,21 +16,79 @@ def save_to_csv(data, output_file):
 
         writer.writerow(data)
 
-def save_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, output_file, multiple_data=False, title=None ):
+def save_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, output_file, multiple_data=False, FOM_data=None ):
 
     print( f'Saving CSV: {output_file}' )
     
     data_all = job_data
-    if not multiple_data: data_all = {0:{'job_data':data_all}} 
+    if not multiple_data: 
+        data_all = {0:{'job_data':data_all}} 
 
-    for indx in data_all:
+    for ind_tmp,indx in enumerate(data_all):
         n_nodes = data_all[indx]['job_data']['n_nodes']
         data = data_all[indx]['job_data']['frequency_sweep']
+        FOM = FOM_data[ind_tmp]
 
         for indx in data:
-            data_freq = {'n_nodes': n_nodes}
-            data_freq.update(data[indx])
+            data_freq = {'n_nodes': n_nodes, 'frequency_cap': data[indx]['frequency_cap'], 'energy_kwh': data[indx]['energy_kwh']/n_nodes, 'duration_secs': data[indx]['duration_secs']}
+            if FOM:
+                if (n_nodes == FOM['n_nodes'][indx]):
+                    data_freq['FOM_gflops'] = FOM['FOM'][indx]
+                    data_freq['benchmark_time_s'] = FOM['Time'][indx]
+                else:
+                    raise "Mismatching n_nodes!"
             save_to_csv(data_freq, output_file)
+
+def plot_benchmark_data(data_mxp_all, data_ref_all):
+    import matplotlib.pyplot as plt
+
+    nrows, ncols = 2, 1
+    figure_width = 12
+    h_scale_factor = 0.3
+    figure_height = figure_width * h_scale_factor * nrows
+    fig, ax_l = plt.subplots(nrows=nrows, ncols=ncols, figsize=(figure_width,figure_height))
+    plt.subplots_adjust( hspace = 0.05, wspace=0.)
+    
+    # Font sizes
+    fs_legend = 12
+    fs_title = 14
+    fs_labels = 12
+    label_pad = 4
+    
+    line_width = 1.2
+    border_width = 1.4
+    
+    for indx in data_mxp_all: 
+        data_mxp = data_mxp_all[indx]
+        n_nodes = data_mxp['n_nodes'][0]
+        
+        label = f'MxP N nodes: {n_nodes}'
+        ax = ax_l[0]
+        ax.plot(data_mxp['FOM'], ls='--', lw=line_width, label=label)
+        ax = ax_l[1]
+        ax.plot(data_mxp['Time'], ls='--', lw=line_width, label=label)
+
+    for indx in data_ref_all: 
+        data_ref = data_ref_all[indx]
+        n_nodes = data_ref['n_nodes'][0]
+        
+        label = f'Ref N nodes: {n_nodes}'
+        ax = ax_l[0]
+        ax.plot(data_ref['FOM'], ls='-', lw=line_width, label=label)
+        ax = ax_l[1]
+        ax.plot(data_ref['Time'], ls='-', lw=line_width, label=label)
+
+    ax = ax_l[0]
+    ax.legend(frameon=False, fontsize=fs_legend)
+    ax.set_xlabel( 'Frequency index', fontsize=fs_labels, labelpad=label_pad )
+    ax.set_ylabel( 'FOM (GFLOP/s)', fontsize=fs_labels, labelpad=label_pad )
+    ax.grid( color='gray', alpha=0.4)
+
+    ax = ax_l[1]
+    ax.legend(frameon=False, fontsize=fs_legend)
+    ax.set_xlabel( 'Frequency index', fontsize=fs_labels, labelpad=label_pad )
+    ax.set_ylabel( 'Time (s)', fontsize=fs_labels, labelpad=label_pad )
+    ax.grid( color='gray', alpha=0.4)
 
 def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_name, multiple_data=False, title=None ):
 
@@ -38,7 +96,7 @@ def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_na
   if not multiple_data: data_all = {0:{'job_data':data_all}} 
 
   import matplotlib.pyplot as plt
-  nrows, ncols = 3, 1
+  nrows, ncols = 4, 1
   figure_width = 12
   h_scale_factor = 0.3
   figure_height = figure_width * h_scale_factor * nrows
@@ -84,6 +142,10 @@ def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_na
     ax = ax_l[2]
     ax.scatter(sclk_vals, edp_vals)
     ax.plot(sclk_vals, edp_vals, ls='--', lw=line_width )
+
+    ax = ax_l[3]
+    ax.scatter(time_vals, energy_vals)
+    ax.plot(time_vals, energy_vals, ls='--', lw=line_width )
   
   ax = ax_l[0]
   ax.legend(frameon=False, fontsize=fs_legend)
@@ -107,6 +169,12 @@ def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_na
   [sp.set_linewidth(border_width) for sp in ax.spines.values()]
 
   ax.set_xlabel( 'GPU Frequency cap [MHz]', fontsize=fs_labels, labelpad=5 )
+
+  ax = ax_l[3]
+  ax.set_xlabel( 'Execution time [secs]', fontsize=fs_labels, labelpad=label_pad )
+  ax.set_ylabel( 'Energy per node [kWh]', fontsize=fs_labels, labelpad=label_pad )
+  ax.grid( color='gray', alpha=0.4)
+  [sp.set_linewidth(border_width) for sp in ax.spines.values()]
 
   fig.align_labels()
   fig.savefig( f'{figure_name}', bbox_inches='tight', dpi=300, facecolor=fig.get_facecolor() )
