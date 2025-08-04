@@ -26,7 +26,7 @@ def save_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, output_fi
 
     for ind_tmp,indx in enumerate(data_all):
         n_nodes = data_all[indx]['job_data']['n_nodes']
-        data = data_all[indx]['job_data']['frequency_sweep']
+        data = data_all[indx]['frequency_sweep_data']
         FOM = FOM_data[ind_tmp]
 
         for indx in data:
@@ -115,7 +115,7 @@ def plot_frequency_cap_energy_analysis( job_data, edp_alpha, edp_beta, figure_na
   for indx in data_all:
 
     n_nodes = data_all[indx]['job_data']['n_nodes']
-    data = data_all[indx]['job_data']['frequency_sweep']
+    data = data_all[indx]['frequency_sweep_data']
     # print(data)
 
     sclk_vals, time_vals, energy_vals = [], [], []
